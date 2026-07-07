@@ -6,9 +6,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Explore Beer Devon · Master Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.15.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.15.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.15.0/firebase-auth-compat.min.js"></script>
+<script>window.addEventListener("error",function(e){var t=(e.target||{}).src||"";if(/firebase.*compat/.test(t)){var s=document.getElementById('fin-status');if(s){s.innerHTML="\u26a0\ufe0f Firebase SDK failed to load from "+t+" \u2014 an ad-blocker or privacy extension may be blocking it. Try disabling it for this site, or use a different browser, then hit Refresh.";s.className="fin-status err";}}},true);</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Bebas+Neue&family=Caveat:wght@600&display=swap" rel="stylesheet">
 
@@ -163,7 +164,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       <div style="font-size:10px;color:var(--mut);margin-top:3px;font-family:'DM Sans',sans-serif;letter-spacing:.02em">Sea Holly House · explorebeerdevon.com · Beer, Devon · All channels · Since Sep 2025</div>
     </div>
   </div>
-  <div class="hr" style="display:flex;align-items:center;gap:10px"><span class="lp"><span class="dot"></span>LIVE DATA</span><span class="upd">Updated: 7 Jul 2026 · v5</span><button onclick="dlDash()" style="background:rgba(77,176,244,0.1);border:1px solid rgba(77,176,244,0.25);border-radius:6px;color:rgba(89,177,252,.85);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:5px 11px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='rgba(77,176,244,0.2)'" onmouseout="this.style.background='rgba(77,176,244,0.1)'">⬇ Download</button></div>
+  <div class="hr" style="display:flex;align-items:center;gap:10px"><span class="lp"><span class="dot"></span>LIVE DATA</span><span class="upd">Updated: 7 Jul 2026 · v6</span><button onclick="dlDash()" style="background:rgba(77,176,244,0.1);border:1px solid rgba(77,176,244,0.25);border-radius:6px;color:rgba(89,177,252,.85);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:5px 11px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='rgba(77,176,244,0.2)'" onmouseout="this.style.background='rgba(77,176,244,0.1)'">⬇ Download</button></div>
 </div>
 <div class="nav">
   <button class="nb on" onclick="sw('ov',this)">📊 Overview</button>
