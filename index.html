@@ -164,7 +164,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       <div style="font-size:10px;color:var(--mut);margin-top:3px;font-family:'DM Sans',sans-serif;letter-spacing:.02em">Sea Holly House · explorebeerdevon.com · Beer, Devon · All channels · Since Sep 2025</div>
     </div>
   </div>
-  <div class="hr" style="display:flex;align-items:center;gap:10px"><span class="lp"><span class="dot"></span>LIVE DATA</span><span class="upd">Updated: 7 Jul 2026 · v6</span><button onclick="dlDash()" style="background:rgba(77,176,244,0.1);border:1px solid rgba(77,176,244,0.25);border-radius:6px;color:rgba(89,177,252,.85);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:5px 11px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='rgba(77,176,244,0.2)'" onmouseout="this.style.background='rgba(77,176,244,0.1)'">⬇ Download</button></div>
+  <div class="hr" style="display:flex;align-items:center;gap:10px"><span class="lp"><span class="dot"></span>LIVE DATA</span><span class="upd">Updated: 7 Jul 2026 · v7</span><button onclick="dlDash()" style="background:rgba(77,176,244,0.1);border:1px solid rgba(77,176,244,0.25);border-radius:6px;color:rgba(89,177,252,.85);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:5px 11px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='rgba(77,176,244,0.2)'" onmouseout="this.style.background='rgba(77,176,244,0.1)'">⬇ Download</button></div>
 </div>
 <div class="nav">
   <button class="nb on" onclick="sw('ov',this)">📊 Overview</button>
@@ -3979,10 +3979,17 @@ var FIN=(function(){
   function loadAll(){
     if(!db){ boot(); return; }
     st('Loading collections…','');
+    var errs=[];
     Promise.all(COLS.map(function(c){
       return db.collection(c).get().then(function(s){ cache[c]=s.docs.map(function(d){ var o=d.data()||{}; o._id=d.id; return o; }); })
-        .catch(function(e){ cache[c]=cache[c]||[]; st('⚠️ Could not read "'+c+'": '+e.message+'  (Check Firestore rules allow your account.)','err'); });
-    })).then(function(){ document.getElementById('fin-body').style.display=''; render(); });
+        .catch(function(e){ cache[c]=cache[c]||[]; errs.push(c+': '+(e&&e.message||e)+' (code: '+(e&&e.code||'unknown')+')'); });
+    })).then(function(){
+      document.getElementById('fin-body').style.display='';
+      render();
+      if(errs.length){
+        st('⚠️ '+errs.length+' of '+COLS.length+' collection(s) failed to load — figures below may be incomplete or zero.<br><span style="font-size:11px">'+errs.join('<br>')+'</span><br><span style="font-size:11px">Common fix: in Firebase console → Firestore → Rules, make sure your rule grants <code>list</code> as well as <code>get</code> (e.g. <code>allow read, write: if request.auth != null && request.auth.token.email == \'YOUR-EMAIL\';</code> covers both), and that the signed-in Google account matches the email in that rule exactly.</span>','err');
+      }
+    });
   }
   function monthly(){
     var inc={},exp={},months={};
