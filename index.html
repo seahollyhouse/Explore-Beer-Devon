@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Dashboard</title>
+<style>
+  html,body{height:100%;margin:0}
+  body{background:#060f1e;color:#ddeeff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+  .box{width:100%;max-width:340px;text-align:center}
+  .lock{font-size:34px;margin-bottom:12px}
+  h1{font-size:18px;font-weight:600;margin:0 0 6px}
+  p{font-size:13px;color:#6b8fa8;margin:0 0 20px;line-height:1.5}
+  button{width:100%;padding:12px;border-radius:10px;border:0;background:#59b1fc;color:#04263f;font-weight:700;font-size:15px;cursor:pointer}
+  button.ghost{background:transparent;color:#6b8fa8;border:1px solid rgba(77,176,244,.22);margin-top:10px;font-weight:600}
+  #msg{font-size:13px;min-height:18px;margin-top:14px;color:#6b8fa8}
+  #msg.err{color:#ff9aa8}
+  .spin{width:26px;height:26px;border:3px solid rgba(89,177,252,.2);border-top-color:#59b1fc;border-radius:50%;
+        animation:r .8s linear infinite;margin:0 auto 14px}
+  @keyframes r{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="lock">🔒</div>
+  <h1>Private dashboard</h1>
+  <p>Sign in with the authorised Google account to continue.</p>
+  <div id="loading" style="display:none"><div class="spin"></div></div>
+  <button id="signin" style="display:none">Sign in with Google</button>
+  <button id="switch" class="ghost" style="display:none">Use a different Google account</button>
+  <div id="msg"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.15.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.15.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.15.0/firebase-firestore-compat.min.js"></script>
+<script>
+// Everything is inside this function on purpose: the dashboard replaces this page in the
+// same window, so no top-level names may be left behind to clash with it.
+(function () {
+  var cfg = {apiKey:"AIzaSyCMtsKJ0571ny0w5rBKoBf0ndCgzRnESvk",authDomain:"explore-beer-devon.firebaseapp.com",projectId:"explore-beer-devon",storageBucket:"explore-beer-devon.firebasestorage.app",messagingSenderId:"590601922470",appId:"1:590601922470:web:13098dca71d155f356d167"};
+  function el(id){ return document.getElementById(id); }
+  function show(state, text, isErr){
+    el('loading').style.display = state === 'loading' ? '' : 'none';
+    el('signin').style.display  = state === 'signin' ? '' : 'none';
+    el('switch').style.display  = state === 'denied' ? '' : 'none';
+    el('msg').textContent = text || '';
+    el('msg').className = isErr ? 'err' : '';
+  }
+  if (typeof firebase === 'undefined'){ show('none', 'Could not reach Google. Check your connection and refresh.', true); return; }
+  firebase.initializeApp(cfg);
+  var auth = firebase.auth(), db = firebase.firestore();
+
+  function signIn(){
+    var p = new firebase.auth.GoogleAuthProvider();
+    p.setCustomParameters({prompt: 'select_account'});
+    auth.signInWithPopup(p).catch(function(e){
+      if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) return auth.signInWithRedirect(p);
+      if (e && e.code === 'auth/popup-closed-by-user') return show('signin', '');
+      show('signin', 'Sign-in failed: ' + (e && e.message || e), true);
+    });
+  }
+  el('signin').onclick = signIn;
+  el('switch').onclick = function(){ auth.signOut().then(signIn); };
+
+  function loadApp(){
+    show('loading', 'Loading…');
+    db.collection('dashboardApp').doc('meta').get().then(function(meta){
+      if (!meta.exists) throw {code: 'not-published'};
+      var m = meta.data(), reads = [];
+      for (var i = 0; i < m.chunks; i++) reads.push(db.collection('dashboardApp').doc('chunk-' + ('00' + i).slice(-3)).get());
+      return Promise.all(reads);
+    }).then(function(docs){
+      var html = docs.map(function(d){ if (!d.exists) throw {code: 'incomplete'}; return d.data().html; }).join('');
+      document.open(); document.write(html); document.close();
+    }).catch(function(e){
+      var code = e && e.code;
+      if (code === 'permission-denied') show('denied', 'This Google account doesn’t have access.', true);
+      else if (code === 'not-published') show('denied', 'The dashboard hasn’t been published yet. Run “Publish dashboard” in the automation repo.', true);
+      else if (code === 'incomplete') show('denied', 'The dashboard is mid-update. Wait a minute and refresh.', true);
+      else show('denied', 'Could not load the dashboard: ' + (e && e.message || code || e), true);
+    });
+  }
+
+  show('loading', '');
+  auth.getRedirectResult().catch(function(e){ show('signin', 'Sign-in failed: ' + e.message, true); });
+  auth.onAuthStateChanged(function(user){ if (user) loadApp(); else show('signin', ''); });
+})();
+</script>
+</body>
+</html>
